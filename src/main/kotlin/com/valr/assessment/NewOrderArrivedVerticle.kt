@@ -3,12 +3,11 @@ package com.valr.assessment
 import com.valr.assessment.model.Order
 import com.valr.assessment.model.OrderDTO
 import io.reactivex.rxjava3.schedulers.Schedulers
-import io.vertx.core.AbstractVerticle
 import io.vertx.core.Promise
 import io.vertx.core.impl.logging.LoggerFactory
 import io.vertx.core.json.Json
 import io.vertx.core.json.JsonObject
-import io.vertx.rxjava3.core.eventbus.EventBus;
+import io.vertx.rxjava3.core.AbstractVerticle;
 
 class NewOrderArrivedVerticle : AbstractVerticle () {
   override fun start(startPromise: Promise<Void>) {
@@ -21,7 +20,7 @@ class NewOrderArrivedVerticle : AbstractVerticle () {
 //      localMapRef["data"] = o.body();
 //
 //    };
-    val e  = EventBus(vertx.eventBus());
+    val e  = vertx.eventBus();
 
     // reactive way of handling new order events with backpressure
     // so order and matching engine can cope with the load
@@ -39,8 +38,6 @@ class NewOrderArrivedVerticle : AbstractVerticle () {
         m.reply("ok");
       }
 
-
     startPromise.complete();
-
   }
 }

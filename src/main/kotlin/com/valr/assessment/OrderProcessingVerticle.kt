@@ -1,7 +1,7 @@
 package com.valr.assessment
 
 import com.valr.assessment.model.Order
-import io.vertx.core.AbstractVerticle
+import io.vertx.rxjava3.core.AbstractVerticle;
 import io.vertx.core.Promise
 import io.vertx.core.impl.logging.LoggerFactory
 import io.vertx.core.json.JsonObject
@@ -19,7 +19,7 @@ class OrderProcessingVerticle : AbstractVerticle () {
       message.reply("ok")
     }
     val localMapRef = vertx.sharedData().getLocalMap<String,List<Order>>("DATA");
-    localMapRef["openorders"] = orderList;
+    localMapRef.put("openorders",orderList);
     startPromise.complete();
   }
 }
