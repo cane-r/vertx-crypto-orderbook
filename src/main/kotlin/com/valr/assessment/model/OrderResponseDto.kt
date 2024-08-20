@@ -6,16 +6,11 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import java.security.Timestamp
 
-/***
- * Order DTO that comes to rest controller to be deserialized
- */
-data class OrderDTO (
-  val price: BigDecimal,
-  val quantity: BigDecimal,
-  val currencyPair: CurrencyPair,
+data class OrderResponseDto(
   val side: Side,
-  //val timestamp: BigInteger
-  ) {
-    constructor() : this(BigDecimal.ZERO,BigDecimal.ZERO,CurrencyPair.BTCZAR,Side.SELLER)
-}
-
+  val quantity: BigDecimal,
+  val price: BigDecimal,
+  val currencyPair: CurrencyPair,
+  val orderCount: Int,
+  val volume : BigDecimal = quantity*price
+)

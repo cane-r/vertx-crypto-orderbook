@@ -26,3 +26,17 @@ mvn clean compile exec:java
 Build a working, in-memory order book to place a limit order with order matching including the
 ability to view all open orders.
 
+# Notes
+* Limit is an order list, sitting at a price level to be filled,and has a property called volume,which is the sum of all order's size
+* Orders will be processed in fifo manner
+
+# Todo
+* Write tests for order book bids/asks
+* limit order book page results to last x orders
+* generalize for other ticker/currencies other than BTCZAR
+* validation and error handling
+* order filling and matching algorithms
+* trades
+* maybe mode a market order too
+* user id for matching
+* auth ( optional )

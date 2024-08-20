@@ -43,8 +43,24 @@
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
+      <artifactId>vertx-web-client</artifactId>
+      <version>4.5.9</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
       <artifactId>vertx-lang-kotlin</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>2.0.16</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.5.7</version>
+    </dependency>
+
     <dependency>
       <groupId>org.jetbrains.kotlin</groupId>
       <artifactId>kotlin-stdlib-jdk8</artifactId>
@@ -73,6 +89,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>3.26.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-rx-java3</artifactId>
       <version>4.5.9</version>
@@ -86,7 +108,7 @@
       <plugin>
         <groupId>org.jetbrains.kotlin</groupId>
         <artifactId>kotlin-maven-plugin</artifactId>
-        <version>2.0.0</version>
+        <version>2.0.10</version>
       </plugin>
       <plugin>
         <groupId>org.jetbrains.kotlin</groupId>
@@ -120,6 +142,19 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>module-info.class</exclude>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                    <exclude>META-INF/LICENSE</exclude>
+                    <exclude>META-INF/NOTICE</exclude>
+                  </excludes>
+                </filter>
+              </filters>
               <transformers>
                 <transformer
                   implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
@@ -152,6 +187,20 @@
           </arguments>
         </configuration>
       </plugin>
+<!--      <plugin>-->
+<!--        <groupId>io.reactiverse</groupId>-->
+<!--        <artifactId>vertx-maven-plugin</artifactId>-->
+<!--        <version>2.0.0</version>-->
+<!--        <executions>-->
+<!--          <execution>-->
+<!--            <id>vmp</id>-->
+<!--            <goals>-->
+<!--              <goal>initialize</goal>-->
+<!--              <goal>package</goal>-->
+<!--            </goals>-->
+<!--          </execution>-->
+<!--        </executions>-->
+<!--      </plugin>-->
     </plugins>
   </build>
 
