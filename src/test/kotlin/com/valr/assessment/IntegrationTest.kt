@@ -1,7 +1,6 @@
 package com.valr.assessment
 
 
-//import io.vertx.core.Vertx
 import com.valr.assessment.enums.CurrencyPair
 import com.valr.assessment.enums.Side
 import com.valr.assessment.model.OrderDTO
@@ -23,8 +22,6 @@ import java.math.BigDecimal
 class IntegrationTest {
 
   private val vertx = Vertx.vertx();
-
-  //private val client: HttpClient = vertx.createHttpClient();
 
   private var client : WebClient = WebClient.create(vertx);
 
@@ -52,7 +49,6 @@ class IntegrationTest {
   @Order(2)
   @Test
   fun test_placing_limit_order (testContext: VertxTestContext) {
-    val log = LoggerFactory.getLogger(this.javaClass)
     val dto = OrderDTO(BigDecimal.TEN,BigDecimal.TEN,CurrencyPair.BTCZAR,Side.BUYER)
 
     client.post(8888,"localhost","/v1/orders/limit")
@@ -70,7 +66,6 @@ class IntegrationTest {
   @Test
   @Order(1)
   fun test_get_order_book (testContext: VertxTestContext) {
-    val log = LoggerFactory.getLogger(this.javaClass)
     client.get(8888,"localhost","/v1/orders/")
       .rxSend()
       //.doOnError({ err -> testContext.failNow(err)})

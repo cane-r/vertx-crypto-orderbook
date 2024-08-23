@@ -24,6 +24,7 @@ class OrderLimitMap (
  }
   fun addLimit(orderLimit: OrderLimit)  {
     map[orderLimit.price] = orderLimit;
+    orderLimit.map = this
   }
   fun removeLimit(orderLimit: OrderLimit)  {
     map.remove(orderLimit.price);
@@ -41,8 +42,6 @@ class OrderLimitMap (
     return this.map.containsKey(limit)
   }
   fun orders() : List<OrderResponseDto>? {
-    val log = LoggerFactory.getLogger(this.javaClass)
-    //val orders = this.map.values.stream().flatMap { ol -> ol.orders.stream() }.collect(Collectors.toList());
     val orders : List<OrderResponseDto>? = this.map.keys.stream().map { it ->
 
       val limit : OrderLimit = map[it]!!
@@ -52,8 +51,9 @@ class OrderLimitMap (
       val q = o.stream().map { e -> e.quantity}.reduce(BigDecimal.ZERO, BigDecimal::add);
       val price = limit.price
       val vol = limit.volume;
-      val obj = OrderResponseDto(side, q,price,CurrencyPair.BTCZAR,count)
-      log.info(o)
+      val currency = o.first().currencyPair ?: CurrencyPair.BTCZAR
+      val obj = OrderResponseDto(side, q,price,currency,count)
+
       obj
     }.collect(Collectors.toList());
     return orders;

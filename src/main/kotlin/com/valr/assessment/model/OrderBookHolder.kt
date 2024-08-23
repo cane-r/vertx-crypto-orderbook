@@ -1,7 +1,5 @@
 package com.valr.assessment.model
 
-import io.vertx.core.impl.logging.LoggerFactory
-
 class OrderBookHolder (private val map : HashMap<String,OrderBook>)  {
 
   // like listing a crypto in an exchange
@@ -10,5 +8,8 @@ class OrderBookHolder (private val map : HashMap<String,OrderBook>)  {
   }
   fun getOrderBookByCurrencyPair (name: String) : OrderBook {
     return this.map[name]!!;
+  }
+  fun isOrderBookExistsForCurrency(name: String) : Boolean {
+    return this.map.containsKey(name)
   }
 }

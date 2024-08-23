@@ -18,6 +18,7 @@ class NewOrderArrivedVerticle : AbstractVerticle () {
     val eventBus  = vertx.eventBus()
 
     // reactive way of handling new order events with backpressure
+    // this is an intermediary verticle to act as a front event bus
     // so order and matching engine can cope with the load hopefully
     eventBus.consumer<JsonObject>("newOrderArrived").toFlowable()
       .onBackpressureBuffer(10000)

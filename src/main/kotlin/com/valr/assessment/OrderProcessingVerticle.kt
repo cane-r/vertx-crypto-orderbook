@@ -19,16 +19,14 @@ class OrderProcessingVerticle : AbstractVerticle () {
 
     val log = LoggerFactory.getLogger(this.javaClass)
 
-    // ****** INITIALIZATION OF ORDER BOOKS FOR A GIVEN CURRENCY ,FOR NOW,ONLY FOR BTCZAR***************
-    // later use orderbook service
+    // ****** INITIALIZATION OF ORDER BOOKS FOR A GIVEN CURRENCY ,FOR NOW,ONLY FOR BTCZAR ***************
     val orderBookHolder = OrderBookHolder(HashMap())
 
     val sellerOrderLimitMap = OrderLimitMap(Side.SELLER)
     val buyerOrderLimitMap = OrderLimitMap(Side.BUYER)
 
-    orderBookHolder.addCurrencyToExchange("BTCZAR", OrderBook(buyerOrderLimitMap,sellerOrderLimitMap))
+    orderBookHolder.addCurrencyToExchange("BTCZAR", OrderBook(buyerOrderLimitMap,sellerOrderLimitMap,vertx))
     // *******************************************************************************************
-    val service = OrderBookService();
 
     vertx.eventBus().consumer<JsonObject>("orderAdded").toFlowable()
       .onBackpressureBuffer(10000)
@@ -40,6 +38,14 @@ class OrderProcessingVerticle : AbstractVerticle () {
       .subscribe { message ->
         val b: String = message.body().getString("order")
         val o: Order = JsonObject(b).mapTo(Order::class.java)
+
+//        if(!orderBookHolder.isOrderBookExistsForCurrency(o.currencyPair.toString())) {
+//
+//          val sellerLimitMap = OrderLimitMap(Side.SELLER)
+//          val buyerLimitMap = OrderLimitMap(Side.BUYER)
+//
+//          orderBookHolder.addCurrencyToExchange(o.currencyPair.toString(), OrderBook(buyerLimitMap,sellerLimitMap,vertx))
+//        }
 
         val orderBook = orderBookHolder.getOrderBookByCurrencyPair(o.currencyPair.toString())
         orderBook.placeLimitOrder(o)

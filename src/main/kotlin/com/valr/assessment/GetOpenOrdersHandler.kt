@@ -10,20 +10,6 @@ class GetOpenOrdersHandler : Handler<RoutingContext> {
 
   override fun handle(ctx: RoutingContext) {
     val log = LoggerFactory.getLogger(this.javaClass)
-//    val localMapRef = ctx.vertx().sharedData().getLocalMap<String, List<Order>>("DATA");
-//
-//    val bolmlocalMapRef = ctx.vertx().sharedData().getLocalMap<String, OrderLimitMap>("BOLMDATA");
-//    val buyerOrderLimitMap = bolmlocalMapRef["bolmopenorders"];
-//
-//    log.info("Getting open orders!")
-//    val orders = localMapRef["openorders"];
-//
-//    ctx.json(json {
-//      obj(
-//        "orderSize" to buyerOrderLimitMap?.size(),
-//        "orders" to "$buyerOrderLimitMap",
-//      )
-//    })
     val localMapRef = ctx.vertx().sharedData().getLocalMap<String, OrderBook>("OrderBookData");
     val orderBook = localMapRef["orderBook"];
 
