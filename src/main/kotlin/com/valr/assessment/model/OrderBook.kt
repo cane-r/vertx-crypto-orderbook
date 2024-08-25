@@ -283,7 +283,6 @@ class OrderBook (val buyers : OrderLimitMap,
           }
 
           val match = OrderMatch(buy,sell,min,buy.price,buy.currencyPair)
-          log.info(match)
         }
       }
     }

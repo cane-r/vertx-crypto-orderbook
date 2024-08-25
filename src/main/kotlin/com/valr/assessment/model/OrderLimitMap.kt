@@ -6,6 +6,7 @@ import io.vertx.core.impl.logging.LoggerFactory
 import io.vertx.core.shareddata.Shareable
 import java.math.BigDecimal
 import java.util.*
+import java.util.concurrent.ConcurrentSkipListSet
 import java.util.stream.Collectors
 
 /*
@@ -48,7 +49,7 @@ class OrderLimitMap (
     val orders : List<OrderResponseDto>? = this.map.keys.stream().map { it ->
 
       val limit : OrderLimit = map[it]!!
-      val o : Set<Order> = limit.orders
+      val o : Set<Order> = ConcurrentSkipListSet(limit.orders)
       val count = limit.orderCount()
       val side = side;
       val q = o.stream().map { e -> e.quantity}.reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -58,7 +59,7 @@ class OrderLimitMap (
       val obj = OrderResponseDto(side, q,price,currency,count)
 
       obj
-    }.collect(Collectors.toList());
+    }.collect(Collectors.toList())
     return orders;
   }
 }

@@ -38,6 +38,9 @@ ability to view all open orders.
 * You can use the command in the bomb.sh file and change the side to bomb the server with buy/sell orders and view the trades endpoint
 * Open orders endpoint : http://localhost:8888/v1/orders/
 * Place order endpoint http://localhost:8888/v1/orders/limit
+  Example limit order payload
+`{"price":10,"quantity":20,"currencyPair":"BTCZAR","side":"BUYER"}`
+
 * View trades endpoint http://localhost:8888/v1/trades/
 * View price matching levels http://localhost:8888/v1/orders/prices?price=<price>&side=<side>&depth=15
 

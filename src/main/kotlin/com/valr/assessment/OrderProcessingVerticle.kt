@@ -48,26 +48,6 @@ class OrderProcessingVerticle : AbstractVerticle () {
 
           book.processOrders(matchedOrders)
 
-//          for(match in matchedOrders) {
-//
-//            val o1 = match.ask
-//            val o2 = match.bid;
-//
-//            if(o1.isOrderFilled()) {
-//              orderBook.removeOrderFromBook(o1)
-//            }
-//            else {
-//              // partial fill,so update the quantity
-//              orderBook.updateOrderQuantity(o1)
-//            }
-//            if(o2.isOrderFilled()) {
-//              orderBook.removeOrderFromBook(o2)
-//            }
-//            else {
-//              // partial fill,so update the quantity
-//              orderBook.updateOrderQuantity(o2)
-//            }
-//          }
           val trades = tradesRef["trades"]
 
           if(trades.isNullOrEmpty()) {
@@ -86,10 +66,7 @@ class OrderProcessingVerticle : AbstractVerticle () {
 
             tradesRef.put("trades", combined)
           }
-
         }
-//        val orderBookMapRef = vertx.sharedData().getLocalMap<String,OrderBook>("OrderBookData")
-//        orderBookMapRef.put("orderBook",book)
       }
 
     vertx.eventBus().consumer<JsonObject>("orderAdded").toFlowable()
@@ -100,14 +77,12 @@ class OrderProcessingVerticle : AbstractVerticle () {
       //.delay(3, TimeUnit.MILLISECONDS)
       .doOnError { err -> log.info(err.cause) }
       .subscribe { message ->
-        //val b: String = message.body().getString("order")
         val dto: OrderDTO = message.body().mapTo(OrderDTO::class.java)
         val order = Order(dto)
 
-        val bb = orderBookHolder.getOrderBookByCurrencyPair(order.currencyPair.toString())
-        bb.placeLimitOrder(order)
+        val ob = orderBookHolder.getOrderBookByCurrencyPair(order.currencyPair.toString())
+        ob.placeLimitOrder(order)
 
-        //message.reply(message.body().toString())
         message.reply("ok")
 
         vertx.eventBus().publish("limitOrderPlaced", Json.encode(order))

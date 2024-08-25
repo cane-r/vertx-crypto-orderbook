@@ -19,20 +19,12 @@ class GetTradesHandler : Handler<RoutingContext>  {
     response.setChunked(true)
     response.putHeader(io.vertx.core.http.HttpHeaders.CONTENT_TYPE, HttpHeaderValues.TEXT_EVENT_STREAM);
 
-//    ctx.vertx().eventBus().consumer<JsonObject>("tradeAdded")
-//      .toFlowable()
-//      .subscribe({e-> //... })
-
-
     val log = LoggerFactory.getLogger(this.javaClass)
 
     val vertx = ctx.vertx()
     val tradesRef = vertx.sharedData().getLocalMap<String, List<Trade>>("TradesData")
     val trades = tradesRef["trades"]
 
-//    if(!Objects.isNull(trades)) {
-//      allTrades.addAll(trades)
-//    }
 
     // for now,spit out random trades via server sent events(SSE streams)
 //    val trade = Trade(

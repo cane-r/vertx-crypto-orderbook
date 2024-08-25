@@ -63,15 +63,6 @@ class OrderLimit (
     }
   }
 
-//  fun removeOrder(orderlist:List<Order>) {
-//    orders.removeAll(orderlist.toSet())
-//    //volume -= orderlist.stream().map { o -> o.size() }.s
-//    // if no orders left in this limit,remove this limit too
-//    if(orders.isEmpty()) {
-//      map.removeLimit(this)
-//    }
-//  }
-
   fun fill(order: Order) : List<OrderMatch>{
 
     val matches = mutableListOf<OrderMatch>()
@@ -84,23 +75,7 @@ class OrderLimit (
       val orderMatch : OrderMatch = fillOrder(o,order)
       matches.add(orderMatch)
       volume = volume.subtract(orderMatch.fillSize.multiply(orderMatch.price))
-
-//      if(order1.isOrderFilled()) {
-//        ordersToDelete.add(order1)
-//      }
-//      else {
-//        // partial fill,so update the quantity
-//        updateOrder(order1)
-//      }
-//      if(order2.isOrderFilled()) {
-//        ordersToDelete.add(order2)
-//      }
-//      else {
-//        // partial fill,so update the quantity
-//        updateOrder(order2)
-//      }
     }
-    //orders.removeAll(ordersToDelete)
     return matches
   }
   // just remove old entity,and add updated one
