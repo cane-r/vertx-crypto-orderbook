@@ -3,9 +3,13 @@ import com.valr.assessment.model.OrderBook
 import com.valr.assessment.model.OrderBookDto
 import io.vertx.core.Handler
 import io.vertx.core.impl.logging.LoggerFactory
-//import io.vertx.ext.web.RoutingContext
 import io.vertx.rxjava3.ext.web.RoutingContext
 
+/**
+ *
+ * Viewing the order book/open orders endpoint
+ *
+ */
 class GetOpenOrdersHandler : Handler<RoutingContext> {
 
   override fun handle(ctx: RoutingContext) {

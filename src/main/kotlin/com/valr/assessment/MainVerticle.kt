@@ -1,7 +1,5 @@
 package com.valr.assessment
 
-//import io.vertx.core.AbstractVerticle
-//import io.vertx.ext.web.Router
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -48,14 +46,8 @@ class MainVerticle : AbstractVerticle() {
     objectMapper.registerModule(module)
 
     RxHelper
-      .deployVerticle(vertx, NewOrderArrivedVerticle())
+      .deployVerticle(vertx, OrderProcessingVerticle())
       .doOnError({e-> log.error(e);exitProcess(1)})
-      .doOnSuccess({m -> vertx.deployVerticle(OrderProcessingVerticle())
-        .doOnError({e-> log.error(e);exitProcess(1)})
-      })
-      .doOnSuccess({m -> vertx.deployVerticle(OrderMatchEngine())
-        .doOnError({e-> log.error(e);exitProcess(1)})
-      })
       .subscribe(
         { message -> log.info(message) },
       )
@@ -85,7 +77,14 @@ class MainVerticle : AbstractVerticle() {
       val orderJsonBody: JsonObject = ctx.body().asJsonObject()
       val e  = vertx.eventBus()
       // send to eventbus so order engine can pick up orders asynchronously/concurrently and process them.
-      e.publish("newOrderArrived",orderJsonBody)
+      //e.publish("orderAdded",orderJsonBody)
+
+      e.rxRequest<JsonObject>("orderAdded",orderJsonBody)
+        .toFlowable()
+        .doOnError({err -> log.error(err)})
+        .subscribe({m-> //log.info("back message!! ${m.body()}")
+        })
+
       //log.info("Order is sent to event bus!")
       ctx.json(
         json {

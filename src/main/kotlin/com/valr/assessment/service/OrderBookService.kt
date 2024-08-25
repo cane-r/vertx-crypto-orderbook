@@ -8,9 +8,9 @@ import com.valr.assessment.model.OrderBookHolder
 import com.valr.assessment.model.OrderLimitMap
 import io.vertx.core.impl.logging.LoggerFactory
 import io.vertx.core.shareddata.Shareable
-import io.vertx.rxjava3.core.Vertx
-import java.util.HashMap
 
+// later bundle orderbook into this
+// not done
 class OrderBookService(
   private val orderBookHolder: OrderBookHolder = OrderBookHolder(HashMap())
   ) : Shareable {
@@ -22,7 +22,7 @@ class OrderBookService(
 
   fun cancelLimitOrder(currencyPair: CurrencyPair,order: Order) {
     val orderBook = getOrderBook(currencyPair)
-    orderBook.cancelOrder()
+    orderBook.cancelOrder(order)
   }
 
   fun createOrderBookForCurrency(currencyPair: CurrencyPair) {
@@ -30,8 +30,7 @@ class OrderBookService(
     val orderBookHolder = OrderBookHolder(HashMap())
     val sellerOrderLimitMap = OrderLimitMap(Side.SELLER)
     val buyerOrderLimitMap = OrderLimitMap(Side.BUYER)
-    orderBookHolder.addCurrencyToExchange(currencyPair.toString(), OrderBook(buyerOrderLimitMap,sellerOrderLimitMap,
-      Vertx.vertx()))
+    orderBookHolder.addCurrencyToExchange(currencyPair.toString(), OrderBook(buyerOrderLimitMap,sellerOrderLimitMap))
   }
 
   fun getOrderBook(currencyPair: CurrencyPair): OrderBook {

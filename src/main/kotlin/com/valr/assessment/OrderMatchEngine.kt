@@ -1,20 +1,17 @@
 package com.valr.assessment
 
-import com.valr.assessment.enums.Side
 import com.valr.assessment.model.Order
 import com.valr.assessment.model.OrderBook
 import com.valr.assessment.model.OrderMatch
 import com.valr.assessment.model.Trade
-import io.reactivex.rxjava3.core.Maybe
 import io.vertx.core.Promise
 import io.vertx.core.impl.logging.LoggerFactory
 import io.vertx.core.json.JsonObject
 import io.vertx.rxjava3.core.AbstractVerticle
-import io.vertx.rxjava3.core.Vertx
-import java.math.BigDecimal
 import java.time.ZonedDateTime
 import java.util.stream.Collectors
 
+// unused
 class OrderMatchEngine() : AbstractVerticle() {
   override fun start(startPromise: Promise<Void>) {
 
@@ -27,7 +24,6 @@ class OrderMatchEngine() : AbstractVerticle() {
       .onBackpressureBuffer(10000)
       .subscribe { m ->
         val order = JsonObject(m.body()).mapTo(Order::class.java)
-
         val orderBook = localMapRef["orderBook"]
 
         if(orderBook != null) {

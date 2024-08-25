@@ -1,26 +1,15 @@
 package com.valr.assessment
 
-import com.valr.assessment.enums.CurrencyPair
-import com.valr.assessment.enums.Side
-import com.valr.assessment.model.Order
 import com.valr.assessment.model.Trade
 import io.netty.handler.codec.http.HttpHeaderValues
-import io.reactivex.rxjava3.core.Observable
 import io.vertx.core.Handler
 import io.vertx.core.impl.logging.LoggerFactory
-import io.vertx.core.json.JsonObject
-import io.vertx.rxjava3.ext.web.RoutingContext;
 import io.vertx.kotlin.core.json.json
 import io.vertx.kotlin.core.json.obj
-import java.math.BigDecimal
-import java.security.SecureRandom
-import java.time.LocalDateTime
-import java.time.ZonedDateTime
-import java.util.Objects
-import java.util.concurrent.TimeUnit
-import kotlin.math.abs
-import kotlin.random.Random
-
+import io.vertx.rxjava3.ext.web.RoutingContext
+/*
+* Handler for viewing all trades
+* */
 class GetTradesHandler : Handler<RoutingContext>  {
 
   private val allTrades = mutableListOf<Trade>()

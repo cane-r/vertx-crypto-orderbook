@@ -7,15 +7,16 @@ import io.vertx.core.shareddata.Shareable
 import io.vertx.rxjava3.core.Vertx
 import java.math.BigDecimal
 import java.util.*
+import java.util.concurrent.ConcurrentSkipListSet
 
 /***
- * Order book class
+ * Order book class that responsible for all the operations related to order book
  */
 class OrderBook (val buyers : OrderLimitMap,
                  val sellers : OrderLimitMap,
-                 // for event propagation to verticles/handlers
-                  val vertx: Vertx,
                   ) : Shareable{
+
+  private val trades = mutableListOf<Trade>()
 
   fun removeOrderFromBook (order: Order) {
     if(order.side == Side.BUYER)
@@ -53,11 +54,7 @@ class OrderBook (val buyers : OrderLimitMap,
         sellers.addLimit(limit);
       }
     }
-
-    limit?.addOrderToLimit(order);
-
-    // it has been put to the book,now process it.
-    vertx.eventBus().publish("limitOrderPlaced", Json.encode(order))
+    limit?.addOrderToLimit(order)
   }
   // experimental
   fun destroyEverything() {
@@ -65,9 +62,14 @@ class OrderBook (val buyers : OrderLimitMap,
     this.sellers.map.clear()
   }
 
-  fun cancelOrder () {}
+  fun cancelOrder (order: Order) {
+    removeOrderFromBook(order)
+  }
 
   fun getOrderBooks () : Map<String,List<OrderResponseDto>?> {
+
+    val log = LoggerFactory.getLogger(this.javaClass)
+
     val res = mutableMapOf<String,List<OrderResponseDto>?>();
 
     val buyerOrders = this.buyers.orders()
@@ -183,8 +185,28 @@ class OrderBook (val buyers : OrderLimitMap,
     }
   }
 
-  // it will be called by the order matching engine verticle.
-  // after receiving order placed event
+  fun processOrders(matches: List<OrderMatch>) {
+
+    for (match in matches) {
+
+      val o1 = match.ask
+      val o2 = match.bid;
+
+      if (o1.isOrderFilled()) {
+        removeOrderFromBook(o1)
+      } else {
+        // partial fill,so update the quantity
+        updateOrderQuantity(o1)
+      }
+      if (o2.isOrderFilled()) {
+        removeOrderFromBook(o2)
+      } else {
+        // partial fill,so update the quantity
+        updateOrderQuantity(o2)
+      }
+    }
+  }
+
   fun matchOrders(order: Order) : List<OrderMatch> {
     val isBuyer = order.side == Side.BUYER;
     val matches = mutableListOf<OrderMatch>();
@@ -236,10 +258,10 @@ class OrderBook (val buyers : OrderLimitMap,
       }
 
       while(!this.sellers.map.isEmpty() && !this.sellers.map.isEmpty()) {
-        val bidOrders : TreeSet<Order> = this.buyers.map.firstEntry().value.orders
-        val sellOrders : TreeSet<Order> = this.sellers.map.firstEntry().value.orders
+        val bidOrders : Set<Order> = this.buyers.map.firstEntry().value.orders
+        val sellOrders : Set<Order> = this.sellers.map.firstEntry().value.orders
 
-        while (!bidOrders.isEmpty() || !sellOrders.isEmpty() ) {
+        while (bidOrders.isNotEmpty() || sellOrders.isNotEmpty()) {
           val buy  = bidOrders.first()
           val sell = sellOrders.first()
 

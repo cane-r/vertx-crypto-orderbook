@@ -11,6 +11,7 @@ import io.vertx.core.json.JsonObject
 import io.vertx.rxjava3.core.AbstractVerticle
 import java.util.concurrent.TimeUnit
 
+// unused
 class NewOrderArrivedVerticle : AbstractVerticle () {
   override fun start(startPromise: Promise<Void>) {
     val log = LoggerFactory.getLogger(this.javaClass)

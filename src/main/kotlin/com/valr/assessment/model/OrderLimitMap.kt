@@ -8,6 +8,9 @@ import java.math.BigDecimal
 import java.util.*
 import java.util.stream.Collectors
 
+/*
+* This class holds the price-limit tuple as a map,sorted in ascending/descending order if the side is seller/buyer
+* */
 class OrderLimitMap (
   private val side:Side,
 ) : Shareable {

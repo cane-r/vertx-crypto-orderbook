@@ -2,22 +2,25 @@ package com.valr.assessment
 
 import com.valr.assessment.enums.Side
 import com.valr.assessment.model.*
-import com.valr.assessment.service.OrderBookService
 import io.reactivex.rxjava3.core.Flowable
-import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import io.vertx.core.Promise
 import io.vertx.core.impl.logging.LoggerFactory
+import io.vertx.core.json.Json
 import io.vertx.core.json.JsonObject
 import io.vertx.rxjava3.core.AbstractVerticle
-import java.util.HashMap
+import java.time.ZonedDateTime
 import java.util.concurrent.TimeUnit
+import java.util.stream.Collectors
 
 
 class OrderProcessingVerticle : AbstractVerticle () {
-  override fun start(startPromise: Promise<Void>) {
 
-    val log = LoggerFactory.getLogger(this.javaClass)
+  val log = LoggerFactory.getLogger(this.javaClass)
+
+  override fun start(startPromise: Promise<Void>) {
+    val localMapRef = vertx.sharedData().getLocalMap<String, OrderBook>("OrderBookData")
+    val tradesRef = vertx.sharedData().getLocalMap<String,List<Trade>>("TradesData")
 
     // ****** INITIALIZATION OF ORDER BOOKS FOR A GIVEN CURRENCY ,FOR NOW,ONLY FOR BTCZAR ***************
     val orderBookHolder = OrderBookHolder(HashMap())
@@ -25,8 +28,69 @@ class OrderProcessingVerticle : AbstractVerticle () {
     val sellerOrderLimitMap = OrderLimitMap(Side.SELLER)
     val buyerOrderLimitMap = OrderLimitMap(Side.BUYER)
 
-    orderBookHolder.addCurrencyToExchange("BTCZAR", OrderBook(buyerOrderLimitMap,sellerOrderLimitMap,vertx))
+    val orderBook = OrderBook(buyerOrderLimitMap,sellerOrderLimitMap)
+    localMapRef.put("orderBook",orderBook)
+    orderBookHolder.addCurrencyToExchange("BTCZAR", orderBook)
     // *******************************************************************************************
+    vertx.eventBus().consumer<String>("limitOrderPlaced").toFlowable()
+      .onBackpressureBuffer(10000)
+      .concatMap({e -> Flowable.just(e).delay(2, TimeUnit.MILLISECONDS)})
+      .subscribe { m ->
+        val book = localMapRef["orderBook"]
+
+        val order = JsonObject(m.body()).mapTo(Order::class.java)
+
+        if(book != null) {
+
+          val matchedOrders = book.matchOrders(order)
+
+          val newTrades = mapMatchesToTrades(matchedOrders);
+
+          book.processOrders(matchedOrders)
+
+//          for(match in matchedOrders) {
+//
+//            val o1 = match.ask
+//            val o2 = match.bid;
+//
+//            if(o1.isOrderFilled()) {
+//              orderBook.removeOrderFromBook(o1)
+//            }
+//            else {
+//              // partial fill,so update the quantity
+//              orderBook.updateOrderQuantity(o1)
+//            }
+//            if(o2.isOrderFilled()) {
+//              orderBook.removeOrderFromBook(o2)
+//            }
+//            else {
+//              // partial fill,so update the quantity
+//              orderBook.updateOrderQuantity(o2)
+//            }
+//          }
+          val trades = tradesRef["trades"]
+
+          if(trades.isNullOrEmpty()) {
+            val list = mutableListOf<Trade>();
+
+            list.addAll(newTrades)
+
+            tradesRef.put("trades", list)
+          }
+
+          if(!trades.isNullOrEmpty()) {
+            val combined = mutableListOf<Trade>()
+
+            combined.addAll(trades)
+            combined.addAll(newTrades)
+
+            tradesRef.put("trades", combined)
+          }
+
+        }
+//        val orderBookMapRef = vertx.sharedData().getLocalMap<String,OrderBook>("OrderBookData")
+//        orderBookMapRef.put("orderBook",book)
+      }
 
     vertx.eventBus().consumer<JsonObject>("orderAdded").toFlowable()
       .onBackpressureBuffer(10000)
@@ -36,25 +100,26 @@ class OrderProcessingVerticle : AbstractVerticle () {
       //.delay(3, TimeUnit.MILLISECONDS)
       .doOnError { err -> log.info(err.cause) }
       .subscribe { message ->
-        val b: String = message.body().getString("order")
-        val o: Order = JsonObject(b).mapTo(Order::class.java)
+        //val b: String = message.body().getString("order")
+        val dto: OrderDTO = message.body().mapTo(OrderDTO::class.java)
+        val order = Order(dto)
 
-//        if(!orderBookHolder.isOrderBookExistsForCurrency(o.currencyPair.toString())) {
-//
-//          val sellerLimitMap = OrderLimitMap(Side.SELLER)
-//          val buyerLimitMap = OrderLimitMap(Side.BUYER)
-//
-//          orderBookHolder.addCurrencyToExchange(o.currencyPair.toString(), OrderBook(buyerLimitMap,sellerLimitMap,vertx))
-//        }
+        val bb = orderBookHolder.getOrderBookByCurrencyPair(order.currencyPair.toString())
+        bb.placeLimitOrder(order)
 
-        val orderBook = orderBookHolder.getOrderBookByCurrencyPair(o.currencyPair.toString())
-        orderBook.placeLimitOrder(o)
+        //message.reply(message.body().toString())
         message.reply("ok")
 
-        val orderBookMapRef = vertx.sharedData().getLocalMap<String,OrderBook>("OrderBookData")
-        orderBookMapRef.put("orderBook",orderBook)
+        vertx.eventBus().publish("limitOrderPlaced", Json.encode(order))
       }
     startPromise.complete()
+  }
+  private fun mapMatchesToTrades(matches: List<OrderMatch>): List<Trade> {
+    val trades : List<Trade> = matches.stream().map { match ->
+      val trade = Trade(match.price, match.fillSize, match.currencyPair, ZonedDateTime.now(), match.ask.orderId, match.bid.orderId)
+      trade
+    }.collect(Collectors.toList())
+    return trades
   }
 }
 

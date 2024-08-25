@@ -41,13 +41,13 @@ import kotlin.math.abs
   }
   @JsonIgnore
   fun isOrderFilled() : Boolean {
-    return quantity == BigDecimal.ZERO;
+    return quantity.compareTo(BigDecimal.ZERO) == 0;
   }
   fun setLimit(orderLimit: OrderLimit) {
     this.orderLimit=orderLimit;
   }
   fun size() : BigDecimal {
-    return price*quantity;
+    return price.multiply(quantity);
   }
   override fun hashCode(): Int {
     return orderId.hashCode()

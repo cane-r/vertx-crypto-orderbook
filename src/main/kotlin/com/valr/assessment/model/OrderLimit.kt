@@ -1,14 +1,11 @@
 package com.valr.assessment.model
 
-import com.valr.assessment.MainVerticle
 import com.valr.assessment.enums.Side
 import io.vertx.core.impl.logging.LoggerFactory
-import io.vertx.core.logging.SLF4JLogDelegate
 import io.vertx.core.shareddata.Shareable
 import java.io.Serializable
 import java.math.BigDecimal
-import java.util.*
-import kotlin.math.log
+import java.util.concurrent.ConcurrentSkipListSet
 
 
 /***
@@ -18,10 +15,11 @@ class OrderLimit (
   var price: BigDecimal,
   // orders will be processed as fifo manner,sorted by their timestamp. First order gets to be filled first.
   // linkedlist / arraylist can be used too
-  var orders: TreeSet<Order>,
+  // for thread safety(vertx) choose to use a concurrent tree set
+  var orders: ConcurrentSkipListSet<Order>,
   var volume: BigDecimal,
 ) : Serializable,Shareable {
-  constructor(price: BigDecimal) : this(price, TreeSet<Order>{ o1, o2 -> o1.timestamp.compareTo(o2.timestamp)  },BigDecimal.ZERO)
+  constructor(price: BigDecimal) : this(price, ConcurrentSkipListSet<Order>{ o1, o2 -> o1.timestamp.compareTo(o2.timestamp)  },BigDecimal.ZERO)
 
   lateinit var map: OrderLimitMap
 
@@ -31,8 +29,8 @@ class OrderLimit (
   fun addOrderToLimit(order: Order) {
     val log = LoggerFactory.getLogger(this.javaClass)
     this.orders.add(order);
-    val vol = (order.price)*(order.quantity);
-    this.volume += vol;
+    val vol = order.size()
+    volume = volume.add(vol);
     order.setLimit(this);
   }
   fun orders () : Set<Order> {
@@ -56,13 +54,23 @@ class OrderLimit (
   }
 
   fun removeOrder(order:Order) {
+    // if(order.status == OrderStatus.PARTIALLY_FILLED) // Raise exception
     orders.remove(order)
-    volume -= order.size()
+    volume = volume.subtract(order.size())
     // if no orders left in this limit,remove this limit too
     if(orders.isEmpty()) {
       map.removeLimit(this)
     }
   }
+
+//  fun removeOrder(orderlist:List<Order>) {
+//    orders.removeAll(orderlist.toSet())
+//    //volume -= orderlist.stream().map { o -> o.size() }.s
+//    // if no orders left in this limit,remove this limit too
+//    if(orders.isEmpty()) {
+//      map.removeLimit(this)
+//    }
+//  }
 
   fun fill(order: Order) : List<OrderMatch>{
 
@@ -75,8 +83,24 @@ class OrderLimit (
       }
       val orderMatch : OrderMatch = fillOrder(o,order)
       matches.add(orderMatch)
-      volume -= orderMatch.fillSize
+      volume = volume.subtract(orderMatch.fillSize.multiply(orderMatch.price))
+
+//      if(order1.isOrderFilled()) {
+//        ordersToDelete.add(order1)
+//      }
+//      else {
+//        // partial fill,so update the quantity
+//        updateOrder(order1)
+//      }
+//      if(order2.isOrderFilled()) {
+//        ordersToDelete.add(order2)
+//      }
+//      else {
+//        // partial fill,so update the quantity
+//        updateOrder(order2)
+//      }
     }
+    //orders.removeAll(ordersToDelete)
     return matches
   }
   // just remove old entity,and add updated one
@@ -84,6 +108,7 @@ class OrderLimit (
   // complexity will be O(logN)(removal) + O(logN)(addition)
   fun updateOrder(order: Order) {
     val log = LoggerFactory.getLogger(this.javaClass)
+    volume = order.size()
     orders.remove(order)
     orders.add(order)
   }
