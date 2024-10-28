@@ -1,3 +1,9 @@
+# Assessment feedback 
+
+The order book implementation is functioning correctly, and the Vertx integration is satisfactory.
+
+However, it appears there was some confusion between "Limit" and "Price Level." Additionally, there was unused code, and no formatting applied making the code harder to follow.
+
 # VALR Assessment
 
 This application was generated using http://start.vertx.io
